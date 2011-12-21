@@ -1,20 +1,20 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>nu.localhost.tapestry</groupId>
     <artifactId>tapestry-spring-security</artifactId>
     <packaging>jar</packaging>
-    <version>3.0.0-SNAPSHOT</version>
+    <version>3.0.0-t53</version>
     <name>Spring Security services for Tapestry</name>
     <inceptionYear>2007</inceptionYear>
     <url>http://www.localhost.nu/java/tapestry-spring-security</url>
-	
+    
     <organization>
         <name>Robin Helgelin</name>
     </organization>
-	
+    
     <licenses>
         <license>
             <name>Apache Software License 2.0</name>
@@ -22,12 +22,12 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
-	
+    
     <scm>
         <connection>scm:git:https://github.com/lobbin/tapestry-spring-security.git</connection>
         <url>https://github.com/lobbin/tapestry-spring-security</url>
     </scm>
-	
+    
     <developers>
         <developer>
             <id>lobbin</id>
@@ -56,7 +56,7 @@
     </developers>
 
     <dependencies>
-		<!-- Tapestry dependencies -->
+        <!-- Tapestry dependencies -->
         <dependency>
             <groupId>org.apache.tapestry</groupId>
             <artifactId>tapestry-core</artifactId>
@@ -69,8 +69,8 @@
             <version>${tapestry-release-version}</version>
 
         </dependency>
-		
-		<!-- Spring security -->
+        
+        <!-- Spring security -->
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-core</artifactId>
@@ -87,7 +87,7 @@
             <version>${spring-security-version}</version>
         </dependency>
         
-		<!-- Springframework -->
+        <!-- Springframework -->
         <!--dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-full</artifactId>
@@ -97,23 +97,23 @@
       <dependency>
           <groupId>org.springframework</groupId>
           <artifactId>spring-web</artifactId>
-		  <version>${spring-release-version}</version>
+          <version>${spring-release-version}</version>
         </dependency>
 
-		<!-- Servlets API -->
+        <!-- Servlets API -->
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>servlet-api</artifactId>
             <version>2.5</version>
         </dependency>
-		
-		<!-- Apache Commons -->
+        
+        <!-- Apache Commons -->
         <dependency>
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
             <version>2.4</version>
         </dependency>
-		
+        
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
@@ -122,7 +122,7 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-	
+    
     <build>
         <finalName>tapestry5-springsecurity</finalName>
         <plugins>
@@ -177,9 +177,9 @@
                 </executions>
             </plugin>
         </plugins>
-	
+    
 
-	    <!-- beta 3 for ftp directory support -->
+        <!-- beta 3 for ftp directory support -->
         <extensions>
             <extension>
                 <groupId>org.apache.maven.wagon</groupId>
@@ -304,10 +304,10 @@
     </distributionManagement>
 
     <properties>
-        <tapestry-release-version>5.2.6</tapestry-release-version>
-        <spring-security-version>3.0.3.RELEASE</spring-security-version>
+        <tapestry-release-version>5.3.0</tapestry-release-version>
+        <spring-security-version>3.0.5.RELEASE</spring-security-version>
 
-        <spring-release-version>3.0.3.RELEASE</spring-release-version>
+        <spring-release-version>3.0.5.RELEASE</spring-release-version>
         <cobertura-plugin-version>2.1</cobertura-plugin-version>
         <testng-release-version>5.1</testng-release-version>
     </properties>

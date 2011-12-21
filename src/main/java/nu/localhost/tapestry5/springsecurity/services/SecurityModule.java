@@ -37,13 +37,15 @@ import org.apache.tapestry5.ioc.Configuration;
 import org.apache.tapestry5.ioc.MappedConfiguration;
 import org.apache.tapestry5.ioc.OrderedConfiguration;
 import org.apache.tapestry5.ioc.ServiceBinder;
-import org.apache.tapestry5.ioc.annotations.*;
-import org.apache.tapestry5.ioc.services.ServiceOverride;
-import org.apache.tapestry5.services.ComponentClassTransformWorker;
+import org.apache.tapestry5.ioc.annotations.Inject;
+import org.apache.tapestry5.ioc.annotations.InjectService;
+import org.apache.tapestry5.ioc.annotations.Marker;
+import org.apache.tapestry5.ioc.annotations.Value;
 import org.apache.tapestry5.services.HttpServletRequestFilter;
 import org.apache.tapestry5.services.LibraryMapping;
 import org.apache.tapestry5.services.RequestFilter;
 import org.apache.tapestry5.services.RequestGlobals;
+import org.apache.tapestry5.services.transform.ComponentClassTransformWorker2;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.access.ConfigAttribute;
@@ -68,7 +70,7 @@ import org.springframework.security.web.access.intercept.DefaultFilterInvocation
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.access.intercept.RequestKey;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
-import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.authentication.AuthenticationProcessingFilterEntryPoint;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
@@ -77,7 +79,7 @@ import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.security.web.authentication.rememberme.RememberMeAuthenticationFilter;
 import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
-import org.springframework.security.web.context.SecurityContextPersistenceFilter;
+import org.springframework.security.web.context.HttpSessionContextIntegrationFilter;
 import org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter;
 import org.springframework.security.web.util.AntUrlPathMatcher;
 
@@ -99,14 +101,12 @@ public class SecurityModule {
         binder.bind( PasswordEncoder.class, PlaintextPasswordEncoder.class ).withMarker( SpringSecurityServices.class );
     }
 
-
-    @Contribute(value = ServiceOverride.class)
-    public static void setupApplicationServiceOverrides(
+    public static void contributeServiceOverride(
             @SpringSecurityServices SaltSourceService saltSource,
             @SpringSecurityServices UsernamePasswordAuthenticationFilter authenticationProcessingFilter,
-            MappedConfiguration<Class, Object> configuration) {
-        configuration.add(SaltSourceService.class, saltSource);
-        configuration.add(UsernamePasswordAuthenticationFilter.class, authenticationProcessingFilter);
+            MappedConfiguration<Class<?>,Object> configuration) {
+      configuration.add(SaltSourceService.class, saltSource);
+      configuration.add(UsernamePasswordAuthenticationFilter.class, authenticationProcessingFilter);
     }
 
     @Marker( SpringSecurityServices.class )
@@ -136,7 +136,7 @@ public class SecurityModule {
     }
 
     public static void contributeComponentClassTransformWorker(
-            OrderedConfiguration<ComponentClassTransformWorker> configuration,
+            OrderedConfiguration<ComponentClassTransformWorker2> configuration,
             SecurityChecker securityChecker ) {
 
         configuration.add( "SpringSecurity", new SpringSecurityWorker( securityChecker ), "after:CleanupRender" );
@@ -208,7 +208,10 @@ public class SecurityModule {
     @Marker( SpringSecurityServices.class )
     public static HttpServletRequestFilter buildHttpSessionContextIntegrationFilter() throws Exception {
 
-        SecurityContextPersistenceFilter filter = new SecurityContextPersistenceFilter();
+        HttpSessionContextIntegrationFilter filter = new HttpSessionContextIntegrationFilter();
+        filter.setContextClass( SecurityContextImpl.class );
+        filter.setAllowSessionCreation( true );
+        filter.setForceEagerSessionCreation( false );
         filter.afterPropertiesSet();
         return new HttpServletRequestFilterWrapper( filter );
     }
@@ -220,7 +223,7 @@ public class SecurityModule {
             @Inject @Value( "${spring-security.check.url}" ) final String authUrl,
             @Inject @Value( "${spring-security.target.url}" ) final String targetUrl,
             @Inject @Value( "${spring-security.failure.url}" ) final String failureUrl,
-            @Inject @Value( "${spring-security.always.use.target.url}" ) final String alwaysUseTargetUrl ) {
+            @Inject @Value( "${spring-security.always.use.target.url}" ) final String alwaysUseTargetUrl ) throws Exception {
 
         UsernamePasswordAuthenticationFilter filter = new UsernamePasswordAuthenticationFilter();
         filter.setAuthenticationManager( manager );
@@ -233,9 +236,9 @@ public class SecurityModule {
         successHandler.setDefaultTargetUrl(targetUrl);
         successHandler.setAlwaysUseDefaultTargetUrl( Boolean.parseBoolean( alwaysUseTargetUrl ) );
         filter.setAuthenticationSuccessHandler( successHandler);
-		filter.setFilterProcessesUrl(targetUrl);
+    filter.setFilterProcessesUrl(targetUrl);
         filter.setFilterProcessesUrl( authUrl );
-        filter.setRememberMeServices( rememberMeServices );		        
+        filter.setRememberMeServices( rememberMeServices );           
 
         filter.afterPropertiesSet();
         return filter;
@@ -243,7 +246,7 @@ public class SecurityModule {
 
     @Marker( SpringSecurityServices.class )
     public static HttpServletRequestFilter buildAuthenticationProcessingFilter(
-            final UsernamePasswordAuthenticationFilter filter ) {
+            final UsernamePasswordAuthenticationFilter filter ) throws Exception {
 
         return new HttpServletRequestFilterWrapper( filter );
     }
@@ -251,7 +254,7 @@ public class SecurityModule {
     @Marker( SpringSecurityServices.class )
     public static HttpServletRequestFilter buildRememberMeProcessingFilter(
             @SpringSecurityServices final RememberMeServices rememberMe,
-            @SpringSecurityServices final AuthenticationManager authManager ) {
+            @SpringSecurityServices final AuthenticationManager authManager ) throws Exception {
 
         RememberMeAuthenticationFilter filter = new RememberMeAuthenticationFilter();
         filter.setRememberMeServices( rememberMe );
@@ -269,7 +272,7 @@ public class SecurityModule {
     @Marker( SpringSecurityServices.class )
     public static HttpServletRequestFilter buildAnonymousProcessingFilter(
             @Inject @Value( "${spring-security.anonymous.attribute}" ) final String anonymousAttr,
-            @Inject @Value( "${spring-security.anonymous.key}" ) final String anonymousKey ) {
+            @Inject @Value( "${spring-security.anonymous.key}" ) final String anonymousKey ) throws Exception {
 
         AnonymousAuthenticationFilter filter = new AnonymousAuthenticationFilter();
         filter.setKey( anonymousKey );
@@ -311,7 +314,7 @@ public class SecurityModule {
 
         cfg.add( "securityContextLogoutHandler", new SecurityContextLogoutHandler() );
         cfg.add( "rememberMeLogoutHandler", rememberMeLogoutHandler );
-        cfg.add( "tapestryLogoutHandler", new TapestryLogoutHandler( globals ) );
+        cfg.add( "tapestryLogoutHandler", new TapestryLogoutHandler( globals ) ,new String[0]);
     }
 
     @Marker( SpringSecurityServices.class )
@@ -400,7 +403,7 @@ public class SecurityModule {
             @Inject @Value( "${spring-security.loginform.url}" ) final String loginFormUrl,
             @Inject @Value( "${spring-security.force.ssl.login}" ) final String forceHttps ) throws Exception {
 
-        LoginUrlAuthenticationEntryPoint entryPoint = new LoginUrlAuthenticationEntryPoint();
+        AuthenticationProcessingFilterEntryPoint entryPoint = new AuthenticationProcessingFilterEntryPoint();
         entryPoint.setLoginFormUrl( loginFormUrl );
         entryPoint.afterPropertiesSet();
         boolean forceSSL = Boolean.parseBoolean( forceHttps );
@@ -410,7 +413,7 @@ public class SecurityModule {
 
     public static SpringSecurityExceptionTranslationFilter buildSpringSecurityExceptionFilter(
             final AuthenticationEntryPoint aep,
-            @Inject @Value( "${spring-security.accessDenied.url}" ) final String accessDeniedUrl ) {
+            @Inject @Value( "${spring-security.accessDenied.url}" ) final String accessDeniedUrl ) throws Exception {
 
         SpringSecurityExceptionTranslationFilter filter = new SpringSecurityExceptionTranslationFilter();
         filter.setAuthenticationEntryPoint( aep );
