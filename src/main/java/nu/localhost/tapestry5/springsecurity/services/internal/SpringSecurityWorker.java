@@ -28,6 +28,7 @@ import org.apache.tapestry5.plastic.MethodInvocation;
 import org.apache.tapestry5.plastic.PlasticClass;
 import org.apache.tapestry5.plastic.PlasticField;
 import org.apache.tapestry5.plastic.PlasticMethod;
+import org.apache.tapestry5.services.TransformConstants;
 import org.apache.tapestry5.services.transform.ComponentClassTransformWorker2;
 import org.apache.tapestry5.services.transform.TransformationSupport;
 import org.springframework.security.access.ConfigAttribute;
@@ -63,8 +64,7 @@ public class SpringSecurityWorker implements ComponentClassTransformWorker2 {
             transformPage(plasticClass, annotation);
         }
     }
-    
-    
+
     private void transformPage(final PlasticClass plasticClass, final Secured annotation) {
 
         // Security checker
@@ -72,80 +72,76 @@ public class SpringSecurityWorker implements ComponentClassTransformWorker2 {
         final PlasticField interField = plasticClass.introduceField(SecurityChecker.class, "_$checker");
         interField.inject(securityChecker);
 
-        // Attribute definition
         final ConfigAttributeHolder confAttrHolder = createConfigAttributeDefinitionField(plasticClass, annotation);
-        
-        // Interceptor token
-//        final String tokenField = transformation.addField(
-//                Modifier.PRIVATE,
-//                org.springframework.security.access.intercept.InterceptorStatusToken.class.getName(),
-//                "_$token" );
 
         PlasticField tokenFieldInstance = plasticClass.introduceField(
-                org.springframework.security.access.intercept.InterceptorStatusToken.class,
-                "_$token"); // InterceptorStatusToken
+                                                                       org.springframework.security.access.intercept.InterceptorStatusToken.class,
+                                                                       "_$token"); // InterceptorStatusToken
 
         final FieldHandle tokenFieldAccess = tokenFieldInstance.getHandle();
 
+        adviseBeginRender(plasticClass, confAttrHolder, tokenFieldAccess, securityChecker);
 
-        // Extend class
+        adviseCleanupRender(plasticClass, tokenFieldAccess, securityChecker);
+
+        adviseEventMethods(plasticClass, confAttrHolder, securityChecker);
+
+    }
+
+    private void adviseBeginRender(PlasticClass plasticClass, final ConfigAttributeHolder confAttrHolder,
+        final FieldHandle tokenFieldAccess, final SecurityChecker secChecker) {
+        
         PlasticMethod beginRenderMethod = plasticClass.introduceMethod(TransformConstants2.BEGIN_RENDER_DESCRIPTION);
 
-
-        /** REPLACED by the block immediately below **/
-//                transformation.extendMethod( TransformConstants.BEGIN_RENDER_SIGNATURE, tokenField + " = " + interField
-//                + ".checkBefore(" + configField + ");" );
-//
-        final SecurityChecker secChecker = this.securityChecker;
         MethodAdvice beginRenderAdvice = new MethodAdvice() {
 
             public void advise(MethodInvocation invocation) {
                 invocation.proceed();
 
-                // tokenField + " = " + interField   + ".checkBefore(" + configField + ");"
-//                ConfigAttributeHolder confAttrHolder = (ConfigAttributeHolder) configFieldInstance.read(invocation.getInstance());
                 InterceptorStatusToken statusTokenVal = secChecker.checkBefore(confAttrHolder);
                 tokenFieldAccess.set(invocation.getInstance(), statusTokenVal);
             }
         };
-
+        
         beginRenderMethod.addAdvice(beginRenderAdvice);
+    }
+    
+    private void adviseCleanupRender(PlasticClass plasticClass, final FieldHandle tokenFieldAccess,
+                                   final SecurityChecker secChecker) {
+        PlasticMethod cleanupRenderMethod =
+                plasticClass.introduceMethod(TransformConstants2.CLEANUP_RENDER_DESCRIPTION);
 
-        // ---------------- END TRANSFORMATION ------------------------
-
-
-        PlasticMethod cleanupRenderMethod = plasticClass.introduceMethod(TransformConstants2.CLEANUP_RENDER_DESCRIPTION);
-
-//        transformation.extendMethod( TransformConstants.CLEANUP_RENDER_SIGNATURE, interField + ".checkAfter("
-//                + tokenField + ", null);" );
         MethodAdvice cleanupRenderAdvice = new MethodAdvice() {
-
+    
             public void advise(MethodInvocation invocation) {
                 invocation.proceed();
-
-                // interField + ".checkAfter(" + tokenField + ", null);
-                InterceptorStatusToken tokenFieldValue = (InterceptorStatusToken) tokenFieldAccess.get(invocation.getInstance());
+    
+                InterceptorStatusToken tokenFieldValue =
+                        (InterceptorStatusToken) tokenFieldAccess.get(invocation.getInstance());
                 secChecker.checkAfter(tokenFieldValue, null);
             }
         };
-
+    
         cleanupRenderMethod.addAdvice(cleanupRenderAdvice);
+    }
 
-        // ------------- END TRANSFORMATION ------------------------
+    private void adviseEventMethods(PlasticClass plasticClass, final ConfigAttributeHolder confAttrHolder,
+        final SecurityChecker secChecker) {
+      MethodAdvice eventAdvice = new MethodAdvice() {
 
+            public void advise(MethodInvocation invocation) {
+                InterceptorStatusToken tokenFieldValue = secChecker.checkBefore(confAttrHolder);
+                invocation.proceed();
+                secChecker.checkAfter(tokenFieldValue, null);
+            }
+        };
+        plasticClass.introduceMethod(TransformConstants.DISPATCH_COMPONENT_EVENT_DESCRIPTION).addAdvice(eventAdvice);
     }
 
     private void transformMethod(final PlasticClass plasticClass, final PlasticMethod securedMethod) {
-
         // Security checker
-      final PlasticField interField = plasticClass.introduceField(SecurityChecker.class, "_$checker");
-      interField.inject(securityChecker);
-
-        // Interceptor status token
-//        final String statusToken = transformation.addField(
-//                Modifier.PRIVATE,
-//                org.springframework.security.access.intercept.InterceptorStatusToken.class.getName(),
-//                "_$token");
+        final PlasticField interField = plasticClass.introduceField(SecurityChecker.class, "_$checker");
+        interField.inject(securityChecker);
 
         PlasticField tokenFieldInstance = plasticClass.introduceField(
               org.springframework.security.access.intercept.InterceptorStatusToken.class,
@@ -155,12 +151,9 @@ public class SpringSecurityWorker implements ComponentClassTransformWorker2 {
 
         // Attribute definition
         final Secured annotation = securedMethod.getAnnotation(Secured.class);
-        //final String configField = createConfigAttributeDefinitionField(transformation, annotation);
         final ConfigAttributeHolder confAttrHolder = createConfigAttributeDefinitionField(plasticClass, annotation);
 
         // Prefix and extend method
-//        transformation.prefixMethod(method, statusToken + " = " + interField + ".checkBefore(" + configField + ");");
-//        transformation.extendExistingMethod(method, interField + ".checkAfter(" + statusToken + ", null);");
         final SecurityChecker secChecker = this.securityChecker;
         MethodAdvice securedMethodAdvice = new MethodAdvice() {
 
@@ -170,7 +163,6 @@ public class SpringSecurityWorker implements ComponentClassTransformWorker2 {
                 
                 invocation.proceed();
 
-                // interField + ".checkAfter(" + tokenField + ", null);
                 InterceptorStatusToken tokenFieldValue = (InterceptorStatusToken) tokenFieldAccess.get(invocation.getInstance());
                 secChecker.checkAfter(tokenFieldValue, null);
             }
