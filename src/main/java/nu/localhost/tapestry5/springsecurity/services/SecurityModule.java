@@ -208,11 +208,11 @@ public class SecurityModule {
     @Marker( SpringSecurityServices.class )
     public static HttpServletRequestFilter buildHttpSessionContextIntegrationFilter() throws Exception {
 
-    	SecurityContextPersistenceFilter filter = new SecurityContextPersistenceFilter ();
-    	HttpSessionSecurityContextRepository securityRepository = new HttpSessionSecurityContextRepository();
-    	
+        SecurityContextPersistenceFilter filter = new SecurityContextPersistenceFilter();
+        HttpSessionSecurityContextRepository securityRepository = new HttpSessionSecurityContextRepository();
+
         securityRepository.setAllowSessionCreation(true);
-    	
+
         filter.setSecurityContextRepository(securityRepository);
         filter.setForceEagerSessionCreation( false );
         filter.afterPropertiesSet();
@@ -239,8 +239,8 @@ public class SecurityModule {
         SavedRequestAwareAuthenticationSuccessHandler successHandler = new SavedRequestAwareAuthenticationSuccessHandler();
         successHandler.setDefaultTargetUrl(targetUrl);
         successHandler.setAlwaysUseDefaultTargetUrl( Boolean.parseBoolean( alwaysUseTargetUrl ) );
-        filter.setAuthenticationSuccessHandler( successHandler);
-    filter.setFilterProcessesUrl(targetUrl);
+        filter.setAuthenticationSuccessHandler(successHandler);
+        filter.setFilterProcessesUrl(targetUrl);
         filter.setFilterProcessesUrl( authUrl );
         filter.setRememberMeServices( rememberMeServices );           
 
@@ -407,9 +407,9 @@ public class SecurityModule {
             @Inject @Value( "${spring-security.loginform.url}" ) final String loginFormUrl,
             @Inject @Value( "${spring-security.force.ssl.login}" ) final String forceHttps ) throws Exception {
 
-    	LoginUrlAuthenticationEntryPoint entryPoint = new LoginUrlAuthenticationEntryPoint();
-    	
-    	entryPoint.setLoginFormUrl( loginFormUrl );
+        LoginUrlAuthenticationEntryPoint entryPoint = new LoginUrlAuthenticationEntryPoint();
+
+        entryPoint.setLoginFormUrl(loginFormUrl);
         entryPoint.afterPropertiesSet();
         boolean forceSSL = Boolean.parseBoolean( forceHttps );
         entryPoint.setForceHttps( forceSSL );
