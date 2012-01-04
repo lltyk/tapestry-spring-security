@@ -61,7 +61,6 @@ import org.springframework.security.authentication.RememberMeAuthenticationProvi
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.authentication.encoding.PasswordEncoder;
 import org.springframework.security.authentication.encoding.PlaintextPasswordEncoder;
-import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.memory.UserAttribute;
 import org.springframework.security.core.userdetails.memory.UserAttributeEditor;
@@ -70,7 +69,7 @@ import org.springframework.security.web.access.intercept.DefaultFilterInvocation
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.access.intercept.RequestKey;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
-import org.springframework.security.web.authentication.AuthenticationProcessingFilterEntryPoint;
+import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
@@ -79,7 +78,8 @@ import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.security.web.authentication.rememberme.RememberMeAuthenticationFilter;
 import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
-import org.springframework.security.web.context.HttpSessionContextIntegrationFilter;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextPersistenceFilter;
 import org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter;
 import org.springframework.security.web.util.AntUrlPathMatcher;
 
@@ -208,11 +208,15 @@ public class SecurityModule {
     @Marker( SpringSecurityServices.class )
     public static HttpServletRequestFilter buildHttpSessionContextIntegrationFilter() throws Exception {
 
-        HttpSessionContextIntegrationFilter filter = new HttpSessionContextIntegrationFilter();
-        filter.setContextClass( SecurityContextImpl.class );
-        filter.setAllowSessionCreation( true );
+    	SecurityContextPersistenceFilter filter = new SecurityContextPersistenceFilter ();
+    	HttpSessionSecurityContextRepository securityRepository = new HttpSessionSecurityContextRepository();
+    	
+        securityRepository.setAllowSessionCreation(true);
+    	
+        filter.setSecurityContextRepository(securityRepository);
         filter.setForceEagerSessionCreation( false );
         filter.afterPropertiesSet();
+        
         return new HttpServletRequestFilterWrapper( filter );
     }
 
@@ -403,8 +407,9 @@ public class SecurityModule {
             @Inject @Value( "${spring-security.loginform.url}" ) final String loginFormUrl,
             @Inject @Value( "${spring-security.force.ssl.login}" ) final String forceHttps ) throws Exception {
 
-        AuthenticationProcessingFilterEntryPoint entryPoint = new AuthenticationProcessingFilterEntryPoint();
-        entryPoint.setLoginFormUrl( loginFormUrl );
+    	LoginUrlAuthenticationEntryPoint entryPoint = new LoginUrlAuthenticationEntryPoint();
+    	
+    	entryPoint.setLoginFormUrl( loginFormUrl );
         entryPoint.afterPropertiesSet();
         boolean forceSSL = Boolean.parseBoolean( forceHttps );
         entryPoint.setForceHttps( forceSSL );
