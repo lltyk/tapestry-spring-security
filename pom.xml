@@ -3,11 +3,12 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>nu.localhost.tapestry</groupId>
+    <groupId>com.github.lltyk</groupId>
     <artifactId>tapestry-spring-security</artifactId>
     <packaging>jar</packaging>
-    <version>3.0.0-t53</version>
+    <version>3.0.2</version>
     <name>Spring Security services for Tapestry</name>
+    <description>Spring Security services for Tapestry</description>
     <inceptionYear>2007</inceptionYear>
     <url>http://www.localhost.nu/java/tapestry-spring-security</url>
     
@@ -304,7 +305,7 @@
     </distributionManagement>
 
     <properties>
-        <tapestry-release-version>5.3.0</tapestry-release-version>
+        <tapestry-release-version>5.3.1</tapestry-release-version>
         <spring-security-version>3.0.5.RELEASE</spring-security-version>
 
         <spring-release-version>3.0.5.RELEASE</spring-release-version>
