@@ -125,7 +125,6 @@
     </dependencies>
     
     <build>
-        <finalName>tapestry5-springsecurity</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
