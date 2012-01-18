@@ -84,7 +84,7 @@ public class SpringSecurityWorker implements ComponentClassTransformWorker2 {
 
         adviseCleanupRender(plasticClass, tokenFieldAccess, securityChecker);
 
-        adviseEventMethods(plasticClass, confAttrHolder, securityChecker);
+        //adviseEventMethods(plasticClass, confAttrHolder, securityChecker);
 
     }
 
