@@ -17,10 +17,10 @@ package nu.localhost.tapestry5.springsecurity.services;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.access.SecurityConfig;
-import org.springframework.security.web.access.intercept.RequestKey;
 
 /**
  * Straight forward mapping definition of HttpRequestURIs to intercept by
@@ -31,11 +31,11 @@ import org.springframework.security.web.access.intercept.RequestKey;
  */
 public class RequestInvocationDefinition {
 
-    private RequestKey requestKey;
+    private String url;
     private List<ConfigAttribute> configAttributes;
 
     public RequestInvocationDefinition(String key, String roles) {
-        this.requestKey = new RequestKey(key);
+        this.url = key;
 		String[] allAttrs = StringUtils.stripAll(
                 StringUtils.splitPreserveAllTokens(roles, ',')
             );
@@ -46,12 +46,8 @@ public class RequestInvocationDefinition {
 
     }
 
-    public RequestKey getRequestKey() {
-        return requestKey;
-    }
-
-    public void setRequestKey(RequestKey requestKey) {
-        this.requestKey = requestKey;
+    public String getUrl() {
+        return url;
     }
 
     public List<ConfigAttribute> getConfigAttributeDefinition() {

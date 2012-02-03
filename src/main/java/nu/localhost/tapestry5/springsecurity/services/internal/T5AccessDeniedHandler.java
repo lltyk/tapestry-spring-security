@@ -6,8 +6,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.PortMapper;
 import org.springframework.security.web.PortMapperImpl;
@@ -28,8 +28,7 @@ import org.springframework.security.web.util.RedirectUrlBuilder;
  */
 public class T5AccessDeniedHandler implements AccessDeniedHandler {
 
-    private static final Log logger = LogFactory
-            .getLog(T5AccessDeniedHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(T5AccessDeniedHandler.class);
 
     private String errorPage = "/";
     private boolean forceHttps = false;
@@ -71,8 +70,7 @@ public class T5AccessDeniedHandler implements AccessDeniedHandler {
                 urlBuilder.setScheme("https");
                 urlBuilder.setPort(httpsPort);
             } else {
-                logger
-                        .warn("Unable to redirect to HTTPS as no port mapping found for HTTP port "
+                logger.warn("Unable to redirect to HTTPS as no port mapping found for HTTP port "
                                 + serverPort);
             }
         }

@@ -20,7 +20,6 @@ package nu.localhost.tapestry5.springsecurity.components;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 import org.apache.tapestry5.Block;
@@ -89,7 +88,7 @@ public class IfRole {
             return Collections.emptyList();
         }
 
-        Collection<GrantedAuthority> granted = currentUser.getAuthorities();
+        Collection<GrantedAuthority> granted = (Collection<GrantedAuthority>) currentUser.getAuthorities();
         return granted;
     }
 

@@ -67,7 +67,6 @@ import org.springframework.security.core.userdetails.memory.UserAttributeEditor;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.access.intercept.DefaultFilterInvocationSecurityMetadataSource;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
-import org.springframework.security.web.access.intercept.RequestKey;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.RememberMeServices;
@@ -81,7 +80,8 @@ import org.springframework.security.web.authentication.rememberme.TokenBasedReme
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextPersistenceFilter;
 import org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter;
-import org.springframework.security.web.util.AntUrlPathMatcher;
+import org.springframework.security.web.util.AntPathRequestMatcher;
+import org.springframework.security.web.util.RequestMatcher;
 
 /**
  * This module is automatically included as part of the Tapestry IoC Registry,
@@ -182,9 +182,8 @@ public class SecurityModule {
             final Collection<RequestInvocationDefinition> contributions ) throws Exception {
 
         FilterSecurityInterceptor interceptor = new FilterSecurityInterceptor();
-        LinkedHashMap<RequestKey, Collection<ConfigAttribute>> requestMap = convertCollectionToLinkedHashMap( contributions );
         DefaultFilterInvocationSecurityMetadataSource source =
-                new DefaultFilterInvocationSecurityMetadataSource(new AntUrlPathMatcher( true ),requestMap );
+                new DefaultFilterInvocationSecurityMetadataSource(convertCollectionToLinkedHashMap( contributions ));
         interceptor.setAccessDecisionManager( accessDecisionManager );
         interceptor.setAlwaysReauthenticate( false );
         interceptor.setAuthenticationManager( manager );
@@ -194,13 +193,13 @@ public class SecurityModule {
         return new HttpServletRequestFilterWrapper( interceptor );
     }
 
-    static LinkedHashMap<RequestKey, Collection<ConfigAttribute>> convertCollectionToLinkedHashMap(
+    static LinkedHashMap<RequestMatcher, Collection<ConfigAttribute>> convertCollectionToLinkedHashMap(
             Collection<RequestInvocationDefinition> urls ) {
 
-        LinkedHashMap<RequestKey, Collection<ConfigAttribute>> requestMap = new LinkedHashMap<RequestKey, Collection<ConfigAttribute>>();
+        LinkedHashMap<RequestMatcher, Collection<ConfigAttribute>> requestMap = new LinkedHashMap<RequestMatcher, Collection<ConfigAttribute>>();
         for ( RequestInvocationDefinition url : urls ) {
 
-            requestMap.put( url.getRequestKey(), url.getConfigAttributeDefinition() );
+            requestMap.put( new AntPathRequestMatcher(url.getUrl()), url.getConfigAttributeDefinition() );
         }
         return requestMap;
     }

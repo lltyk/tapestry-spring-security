@@ -26,8 +26,8 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationTrustResolver;
 import org.springframework.security.authentication.AuthenticationTrustResolverImpl;
@@ -63,8 +63,7 @@ public class SpringSecurityExceptionTranslationFilter extends GenericFilterBean 
 
     //~ Instance fields ================================================================================================
 
-	   private static final Log logger = LogFactory
-            .getLog(ExceptionTranslationFilter.class);
+	   private static final Logger logger = LoggerFactory.getLogger(ExceptionTranslationFilter.class);
 
     private AccessDeniedHandler accessDeniedHandler = new AccessDeniedHandlerImpl();
     private AuthenticationEntryPoint authenticationEntryPoint;
